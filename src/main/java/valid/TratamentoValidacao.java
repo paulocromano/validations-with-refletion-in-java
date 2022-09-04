@@ -17,8 +17,11 @@ public class TratamentoValidacao {
             executarValidacoesEmUmaClasse(object);
         }
 
-        if (!jsonErrosDeValidacoes.isEmpty())
-            throw new RuntimeException(jsonErrosDeValidacoes.toString());
+        if (!jsonErrosDeValidacoes.isEmpty()) {
+            List<JSONObject> jsonErrosDeValidacoesClone = new ArrayList<>(jsonErrosDeValidacoes);
+            jsonErrosDeValidacoes.clear();
+            throw new RuntimeException(jsonErrosDeValidacoesClone.toString());
+        }
     }
 
     private static void executarValidacoesEmUmaClasse(Object object) {
@@ -32,21 +35,20 @@ public class TratamentoValidacao {
 
             for (Annotation annotation : field.getAnnotations()) {
                 try {
-                    Optional<JSONObject> erroGeradoOptional = validarField(object, field, annotation);
-                    if (erroGeradoOptional.isPresent()) jsonErrosDoField.add(erroGeradoOptional.get());
+                    if (annotation.annotationType().isAnnotationPresent(Validator.class)) {
+                        Optional<JSONObject> erroGeradoOptional = validarField(object, field, annotation);
+                        if (erroGeradoOptional.isPresent()) jsonErrosDoField.add(erroGeradoOptional.get());
+                    }
                 }
-                catch (IllegalAccessException e) {
-                    throw new RuntimeException(e);
-                }
-                catch (InstantiationException e) {
-                    throw new RuntimeException(e);
-                }
+                catch (IllegalAccessException e) { throw new RuntimeException(e); }
+                catch (InstantiationException e) { throw new RuntimeException(e); }
             }
 
             if (!jsonErrosDoField.isEmpty()) jsonErrosFieldsDaClasse.put(field.getName(), jsonErrosDoField);
         }
 
-        if (!jsonErrosFieldsDaClasse.isEmpty()) jsonErrosDeValidacoes.add(gerarJsonComInformacoesDosErrosDosFieldsDaClasse(klass, jsonErrosFieldsDaClasse));
+        if (!jsonErrosFieldsDaClasse.isEmpty())
+            jsonErrosDeValidacoes.add(gerarJsonComInformacoesDosErrosDosFieldsDaClasse(klass, jsonErrosFieldsDaClasse));
     }
 
     private static Optional<JSONObject> validarField(Object object, Field field, Annotation annotation) throws IllegalAccessException, InstantiationException {

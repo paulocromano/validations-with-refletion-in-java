@@ -30,21 +30,23 @@ public class SizeValidator implements Valid<Size> {
 
     @Override
     public boolean campoInvalido(Object object) {
-        if (Objects.isNull(object)) throw new NullPointerException(object.getClass().getName() + " está nula!");
+        if (Objects.nonNull(object)) {
+            if (!clasesAceitasParaValidacao.contains(object.getClass()))
+                throw new IllegalArgumentException("Esta anotação não permite trabalhar com a classe " + object.getClass().getName());
 
-        if (!clasesAceitasParaValidacao.contains(object.getClass()))
-            throw new IllegalArgumentException("Esta anotação não permite trabalhar com a classe " + object.getClass().getName());
+            if (object instanceof Collection)
+                return objetoEstaComTamanhoInvalido(((Collection) object).size());
+            else if (object instanceof String)
+                return objetoEstaComTamanhoInvalido(((String) object).length());
+            else if (object instanceof Integer)
+                return objetoEstaComTamanhoInvalido(((Integer) object).intValue());
+            else if (object instanceof Long)
+                return objetoEstaComTamanhoInvalido(((Long) object).longValue());
 
-        if (object instanceof Collection)
-            return objetoEstaComTamanhoInvalido(((Collection) object).size());
-        else if (object instanceof String)
-            return objetoEstaComTamanhoInvalido(((String) object).length());
-        else if (object instanceof Integer)
-            return objetoEstaComTamanhoInvalido(((Integer) object));
-        else if (object instanceof Long)
-            return objetoEstaComTamanhoInvalido(((Long) object));
+            return true;
+        }
 
-        return true;
+        return false;
     }
 
     private boolean objetoEstaComTamanhoInvalido(long length) {

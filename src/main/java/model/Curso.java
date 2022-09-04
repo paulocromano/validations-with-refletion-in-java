@@ -7,7 +7,7 @@ public class Curso {
 
     @NotNull(message = "O campo 'ID' está nulo!")
     private Long id;
-    @Size(max = 2)
+    @Size(max = 40)
     private String nome;
 
 
